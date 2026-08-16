@@ -1,0 +1,528 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentation - Belatstrap</title>
+  <link rel="icon" type="image/png" href="https://i.imgur.com/hoNzUGn.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gravitas+One&family=Special+Gothic+Expanded+One&family=Zalando+Sans+Expanded:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./cursor.css" />
+  <link rel="stylesheet" href="./trail.css" />
+  <script src="./trail.min.js" defer></script>
+  <meta name="description" content="Belatstrap documentation - how to install, sign in, inject FFLAGS, and use every feature." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandRed: '#e10600',
+            ink: '#0b0b0b',
+            paper: '#ffffff',
+            fog: '#f4f4f4',
+            line: 'rgba(255, 255, 255, 0.14)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background-color: #000 !important; color: #fff !important; font-family: "Zalando Sans Expanded", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji" !important; position: relative; min-height: 100vh; }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background: url('https://i.imgur.com/naK1hruh.jpg');
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: cover;
+      filter: grayscale(20%) brightness(90%);
+      opacity: 0.3;
+      transform: translateZ(0);
+      pointer-events: none;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: rgba(0, 0, 0, 0.55);
+      pointer-events: none;
+    }
+
+    section.bg-black { background-color: transparent !important; }
+    footer.bg-black { background-color: rgba(0, 0, 0, 0.62) !important; backdrop-filter: blur(10px); }
+    .border.bg-black { background-color: rgba(0, 0, 0, 0.55) !important; backdrop-filter: blur(10px); }
+    html { scroll-behavior: smooth; }
+    .font-serif { font-family: "Gravitas One", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif !important; }
+    .font-sans { font-family: "Zalando Sans Expanded", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji" !important; }
+    .font-gothic { font-family: "Special Gothic Expanded One", "Zalando Sans Expanded", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji" !important; }
+    .lux-link { position: relative; }
+    .lux-link::after { content: ""; position: absolute; left: 0; bottom: -2px; width: 100%; height: 1px; background: #e10600; transform: scaleX(0); transform-origin: left; transition: transform 240ms ease; }
+    .lux-link:hover::after { transform: scaleX(1); }
+    #site-nav.nav-scrolled { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); background-color: rgba(0, 0, 0, 0.82); }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+    #spiderWebCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 1;
+    }
+
+    .doc-card { border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(10px); }
+    .doc-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      flex: 0 0 34px;
+      background: #e10600;
+      color: #000;
+      font-weight: 800;
+      border-radius: 8px;
+    }
+    .toc-link { color: rgba(255,255,255,0.75); transition: color 160ms ease, transform 160ms ease; }
+    .toc-link:hover { color: #e10600; transform: translateX(3px); }
+    .kbd {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-bottom-width: 2px;
+      border-radius: 6px;
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      font-size: 12px;
+      color: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.05);
+    }
+    .warn-box { border: 1px solid rgba(225, 6, 0, 0.35); background: rgba(225, 6, 0, 0.08); }
+    .tip-box { border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.04); }
+  </style>
+</head>
+<body class="text-white bg-black font-sans cursor-ready">
+  <canvas id="spiderWebCanvas"></canvas>
+  <div id="custom-cursor" aria-hidden="true"></div>
+
+  <!-- NAVBAR -->
+  <nav id="site-nav" class="w-full fixed top-0 z-50 bg-black/70 backdrop-blur border-b border-line">
+    <div class="max-w-[1400px] mx-auto px-6 py-5 flex items-center justify-between">
+      <div class="flex items-center gap-6">
+        <a href="/" class="flex items-center gap-3">
+          <img src="https://i.imgur.com/hoNzUGn.png" alt="Belatstrap logo" class="h-12 w-12 object-contain flex-shrink-0" loading="eager" />
+          <span class="text-xs tracking-[0.28em] uppercase">Belatstrap</span>
+        </a>
+        <a href="https://discord.com/invite/wjuacfY5ED" target="_blank" rel="noopener" class="inline-flex items-center justify-center ml-2 hover:opacity-80 transition" aria-label="Join Discord">
+          <img src="https://i.imgur.com/mmgMkV7.png" alt="Discord" class="h-5 w-5 object-contain" />
+        </a>
+      </div>
+      <div class="hidden md:flex gap-10 text-xs tracking-[0.28em] uppercase">
+        <a href="/" class="lux-link hover:opacity-60 transition">Home</a>
+        <a href="/docs" class="lux-link hover:opacity-60 transition text-brandRed">Docs</a>
+        <a href="/about" class="lux-link hover:opacity-60 transition">About</a>
+        <a href="/note" class="lux-link hover:opacity-60 transition">Note</a>
+        <a href="/#download" class="lux-link hover:opacity-60 transition">Download</a>
+        <a href="/#faq" class="lux-link hover:opacity-60 transition">FAQ</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="w-full px-6 pt-40 pb-16 bg-black">
+    <div class="max-w-4xl mx-auto text-center">
+      <h1 class="font-serif text-5xl md:text-6xl font-semibold mb-6">Documentation</h1>
+      <p class="text-white/70 text-lg leading-relaxed mb-10">
+        Everything you need to know about using Belatstrap — from first launch to every feature in the app.
+      </p>
+    </div>
+  </section>
+
+  <!-- TOC -->
+  <section class="w-full px-6 pb-16 bg-black">
+    <div class="max-w-4xl mx-auto doc-card rounded-lg p-8">
+      <h2 class="text-xs tracking-[0.28em] uppercase text-brandRed mb-6">Table of Contents</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-3 text-sm">
+        <a href="#quickstart" class="toc-link">1. Quick Start</a>
+        <a href="#installer" class="toc-link">2. Language &amp; Installer</a>
+        <a href="#discord-login" class="toc-link">3. Discord Login (5H Session)</a>
+        <a href="#loading" class="toc-link">4. Loading Screen</a>
+        <a href="#main-ui" class="toc-link">5. Main UI Overview</a>
+        <a href="#tab-injector" class="toc-link">6. Injector Tab</a>
+        <a href="#tab-settings" class="toc-link">7. Settings Tab</a>
+        <a href="#tab-others" class="toc-link">8. Others Tab (GUID Spoofer)</a>
+        <a href="#tab-bundle" class="toc-link">9. Bundle Tab</a>
+        <a href="#tab-performance" class="toc-link">10. Performance Tab</a>
+        <a href="#tab-terminal" class="toc-link">11. Terminal Tab</a>
+        <a href="#fflags-manager" class="toc-link">12. FFlags Manager</a>
+        <a href="#safety" class="toc-link">13. Safety &amp; Troubleshooting</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK START -->
+  <section id="quickstart" class="w-full px-6 py-12 bg-black" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold mb-8">Quick Start</h2>
+      <div class="space-y-5">
+        <div class="doc-card rounded-lg p-6 flex items-start gap-4">
+          <span class="doc-num">1</span>
+          <div>
+            <h3 class="font-semibold mb-1">Run Belatstrap as Administrator</h3>
+            <p class="text-white/70 leading-relaxed">Right-click <strong>Belatstrap.exe</strong> → Run as administrator. Admin rights are required for memory injection and for the GUID/MAC spoofers to work.</p>
+          </div>
+        </div>
+        <div class="doc-card rounded-lg p-6 flex items-start gap-4">
+          <span class="doc-num">2</span>
+          <div>
+            <h3 class="font-semibold mb-1">Pick your language</h3>
+            <p class="text-white/70 leading-relaxed">Choose one of the 12 supported languages. Your choice is remembered — next launch skips straight to the installer check.</p>
+          </div>
+        </div>
+        <div class="doc-card rounded-lg p-6 flex items-start gap-4">
+          <span class="doc-num">3</span>
+          <div>
+            <h3 class="font-semibold mb-1">Let the installer verify Roblox</h3>
+            <p class="text-white/70 leading-relaxed">Belatstrap checks your Roblox version against the one its offsets were dumped for. If your client is outdated it downloads and installs the matching version automatically. If the download fails, hit <strong>Retry Download</strong>.</p>
+          </div>
+        </div>
+        <div class="doc-card rounded-lg p-6 flex items-start gap-4">
+          <span class="doc-num">4</span>
+          <div>
+            <h3 class="font-semibold mb-1">Sign in with Discord</h3>
+            <p class="text-white/70 leading-relaxed">Official OAuth — no password involved. One sign-in keeps you verified for <strong>5 hours</strong>.</p>
+          </div>
+        </div>
+        <div class="doc-card rounded-lg p-6 flex items-start gap-4">
+          <span class="doc-num">5</span>
+          <div>
+            <h3 class="font-semibold mb-1">Load a config and inject</h3>
+            <p class="text-white/70 leading-relaxed">In the <strong>Injector</strong> tab: Load Config (or build your own FFlags) → press <strong>INJECT</strong> with Roblox running. Flags are written directly into Roblox's memory.</p>
+          </div>
+        </div>
+        <div class="doc-card rounded-lg p-6 flex items-start gap-4">
+          <span class="doc-num">6</span>
+          <div>
+            <h3 class="font-semibold mb-1">Apply bundles for quick setups</h3>
+            <p class="text-white/70 leading-relaxed">Use the <strong>Bundle</strong> tab presets (Desync, No Texture, Skip MIP, TSB, ESP) for one-click tweak combos.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LANGUAGE & INSTALLER -->
+  <section id="installer" class="w-full px-6 py-12 bg-black" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold mb-8">Language &amp; Installer</h2>
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <h3 class="font-semibold mb-3">Language selection</h3>
+        <p class="text-white/70 leading-relaxed">
+          The installer screen lets you pick from <strong>12 languages</strong>: English, Spanish, French, German, Portuguese, Russian, Chinese, Japanese, Filipino, Vietnamese, Arabic and Indonesian. The whole UI — installer, main menu, dialogs — switches language. Your pick is saved, so on the next launch the selection screen is skipped and Belatstrap jumps straight to checking your Roblox version.
+        </p>
+      </div>
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <h3 class="font-semibold mb-3">Version check &amp; Roblox download</h3>
+        <p class="text-white/70 leading-relaxed">
+          Belatstrap works against a specific Roblox build (its offsets are dumped for that version). On every launch it compares your installed Roblox against the latest supported version:
+        </p>
+        <ul class="list-disc list-inside text-white/70 leading-relaxed mt-3 space-y-2">
+          <li><strong>Up to date</strong> → straight to <em>Continue to Application</em>.</li>
+          <li><strong>Outdated or missing</strong> → Belatstrap downloads and installs the latest Roblox automatically, showing progress. If the download is interrupted, use <strong>Retry Download</strong>.</li>
+          <li>You can always <strong>Skip Installer</strong> — but the offset database may then not match your Roblox build.</li>
+        </ul>
+      </div>
+      <div class="tip-box rounded-lg p-6">
+        <p class="text-white/70 leading-relaxed text-sm">If Roblox is currently running, Belatstrap tells you on screen — close it first so the installer can replace the client files.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DISCORD LOGIN -->
+  <section id="discord-login" class="w-full px-6 py-12 bg-black" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold mb-8">Discord Login (5H Session)</h2>
+      <div class="doc-card rounded-lg p-8">
+        <p class="text-white/70 leading-relaxed">
+          Belatstrap uses <strong>Discord's official OAuth</strong> to verify that you're a real Discord user. The login happens in Belatstrap's own browser window:
+        </p>
+        <ul class="list-disc list-inside text-white/70 leading-relaxed mt-4 space-y-2">
+          <li>You approve only the info shown on Discord's authorization screen.</li>
+          <li>Your Discord password is never seen, stored or transmitted to Belatstrap.</li>
+          <li>After a successful login your session stays valid for <strong>5 hours</strong> — no repeated sign-ins while you use the app.</li>
+          <li>If the connection to Discord fails you'll see a clear error and can retry.</li>
+          <li>Revoke access any time via Discord → User Settings → Authorized Apps.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOADING -->
+  <section id="loading" class="w-full px-6 py-12 bg-black" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold mb-8">Loading Screen</h2>
+      <div class="doc-card rounded-lg p-8">
+        <p class="text-white/70 leading-relaxed">
+          After Discord verification, a short "PREPARING YOUR ENVIRONMENT" loading screen runs for a few seconds while Belatstrap prepares your session, then the main window opens (1000 × 600, centered on your monitor). This is normal — just wait a moment.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN UI -->
+  <section id="main-ui" class="w-full px-6 py-12 bg-black" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold mb-8">Main UI Overview</h2>
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <p class="text-white/70 leading-relaxed">
+          The main window has a dark sidebar on the left with six tabs: <strong>Injector, Settings, Others, Bundle, Performance</strong> and <strong>Terminal</strong>. The top bar shows the Belatstrap logo, a <strong>Status</strong> line (e.g. "Status: Idle" or "Applying" while flags are being written) and a close (X) button — closing asks for confirmation.
+        </p>
+      </div>
+      <div class="tip-box rounded-lg p-6">
+        <p class="text-white/70 leading-relaxed text-sm">If Roblox launches while the app is open, a small toast appears in the corner: "Roblox is currently running." — useful to know when to restart it after config changes.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- INJECTOR TAB -->
+  <section id="tab-injector" class="w-full px-6 py-12 bg-black" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold mb-8">Injector Tab</h2>
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <p class="text-white/70 leading-relaxed">
+          The heart of Belatstrap. It shows the detected <strong>Roblox PID</strong>, the currently <strong>loaded config</strong>, and an <strong>INJECT</strong> button that becomes <strong>INJECTED</strong> once the flags are written into Roblox's memory process.
+        </p>
+      </div>
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <h3 class="font-semibold mb-3">Your flags</h3>
+        <p class="text-white/70 leading-relaxed">
+          The <strong>YOUR FLAGS</strong> panel lists everything in your current config with a live search box ("Found N flags matching …"). Each flag can be:
+        </p>
+        <ul class="list-disc list-inside text-white/70 leading-relaxed mt-3 space-y-2">
+          <li><strong>Edit</strong> — change the flag value (Flag name + Value, then Save/Cancel).</li>
+          <li><strong>Remove</strong> — drop it from the list.</li>
+          <li><strong>Remove All</strong> — clears every flag (asks for confirmation, since it removes them from the Roblox memory process).</li>
+        </ul>
+        <p class="text-white/70 leading-relaxed mt-4">
+          <strong>Clear Log</strong> wipes the injector console output below the list.
+        </p>
+      </div>
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <h3 class="font-semibold mb-3">Empty states you may see</h3>
+        <ul class="list-disc list-inside text-white/70 leading-relaxed space-y-2">
+          <li><em>"No flags loaded. Load a Config."</em> — go to Settings → Load Config or use the FFlags Manager.</li>
+          <li><em>"No supported flags found."</em> — your loaded flags have no valid offsets for the current Roblox version. Update your Roblox (installer) and re-dump/re-save the config.</li>
+          <li><em>"Unsupported flag — read-only"</em> — some flags can't be injected; they're informational only.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETTINGS TAB -->
+  <section id="tab-settings" class="w-full px-6 py-12 bg-black" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold mb-8">Settings Tab</h2>
+
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <h3 class="font-semibold mb-3">General</h3>
+        <ul class="list-disc list-inside text-white/70 leading-relaxed space-y-2">
+          <li><strong>Language</strong> — switch the UI language on the fly (same 12 languages as the installer).</li>
+          <li><strong>UI Keybind</strong> — click the box and press any key to bind show/hide of the UI (ESC cancels).</li>
+          <li><strong>Auto Apply</strong> — automatically apply your loaded flags when injecting.</li>
+          <li><strong>Streamproof</strong> — hide sensitive parts of the UI when you're streaming.</li>
+          <li><strong>Instant</strong> — apply flags instantly without delays.</li>
+          <li><strong>Save Config / Load Config</strong> — persist or restore your whole flag setup (JSON files).</li>
+        </ul>
+        <div class="warn-box rounded-lg p-4 mt-5">
+          <p class="text-white/80 text-sm">For some changes to take effect you must <strong>restart Roblox</strong> — Belatstrap shows a "Restart Roblox" button right in the settings when that's the case.</p>
+        </div>
+      </div>
+
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <h3 class="font-semibold mb-3">Miscellaneous</h3>
+        <ul class="list-disc list-inside text-white/70 leading-relaxed space-y-2">
+          <li><strong>MAC Address Spoofer</strong> — one click to spoof your network adapter's MAC address ("Spoofing MAC address…" while it works).</li>
+          <li><strong>Target FPS</strong> — set the FPS cap you want.</li>
+          <li><strong>Memory Cleaner</strong> — free up Belatstrap's memory usage with one click.</li>
+        </ul>
+      </div>
+
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <h3 class="font-semibold mb-3">Font Changer</h3>
+        <p class="text-white/70 leading-relaxed">
+          <strong>Browse Font</strong> → pick a .ttf/.otf → <strong>Apply &amp; Lock</strong> to keep it, <strong>Restore Default</strong> to go back, or <strong>Apply &amp; Restart</strong> to apply it with a fresh start.
+        </p>
+      </div>
+
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <h3 class="font-semibold mb-3">Cursor Changer</h3>
+        <p class="text-white/70 leading-relaxed">
+          Same idea as the font changer: <strong>Browse Image</strong> → apply and lock your own cursor, restore the default, or apply and restart.
+        </p>
+      </div>
+
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <h3 class="font-semibold mb-3">Presets &amp; Graphics Quality</h3>
+        <p class="text-white/70 leading-relaxed">
+          <strong>Presets</strong> are one-click FFLAG setups (performance, FPS boost, graphics, stability). <strong>Graphics Quality</strong> offers LOW / MID / HIGH profiles with an <strong>Apply &amp; Restart</strong> button.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- OTHERS TAB -->
+  <section id="tab-others" class="w-full px-6 py-12 bg-black" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold mb-8">Others Tab (GUID Spoofer)</h2>
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <p class="text-white/70 leading-relaxed">
+          The <strong>Control</strong> section manages your machine's System GUID:
+        </p>
+        <ul class="list-disc list-inside text-white/70 leading-relaxed mt-3 space-y-2">
+          <li><strong>Change GUID</strong> — generate and apply a new system GUID manually.</li>
+          <li><strong>Auto GUID</strong> — keep re-spoofing on a timer so the GUID never stays static.</li>
+          <li><strong>Use Interval</strong> + <strong>Seconds</strong> — when enabled, your FFLAGS are applied in batches every N seconds (12–20s slider) instead of all at once, to avoid stuttering while Roblox is running.</li>
+          <li>Status readouts: <strong>Current System GUID</strong>, <strong>Changes</strong> count and <strong>Last Change</strong> timer.</li>
+        </ul>
+      </div>
+      <div class="warn-box rounded-lg p-6">
+        <p class="text-white/80 leading-relaxed">
+          If you see "✗ Cannot read System GUID" you are <strong>not running as Administrator</strong> — close Belatstrap and relaunch it as admin.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BUNDLE TAB -->
+  <section id="tab-bundle" class="w-full px-6 py-12 bg-black" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold mb-8">Bundle Tab</h2>
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <p class="text-white/70 leading-relaxed">
+          Ready-made bundles that apply a set of flags in one click. Each one shows "⏳ Applying flags…" while working. The tab warns you if Roblox isn't running ("⚠ Roblox not running!") or if you haven't injected yet ("⚠ Inject first!").
+        </p>
+        <ul class="list-disc list-inside text-white/70 leading-relaxed mt-4 space-y-2">
+          <li><strong>Desync</strong> — toggle desync functionality, with an adjustable interval in milliseconds.</li>
+          <li><strong>NO TEXTURE</strong> — remove all textures from the game for a big FPS jump.</li>
+          <li><strong>SKIP MIP</strong> — skip mipmapping for better performance.</li>
+          <li><strong>BLADEBALL LAG BALL</strong> — BladeBall-specific lag ball settings.</li>
+          <li><strong>TSB</strong> — the TSB bundle preset (fast M1, long range, etc.).</li>
+          <li><strong>ESP FFLAGS</strong> — enable ESP and debug visualization flags.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PERFORMANCE TAB -->
+  <section id="tab-performance" class="w-full px-6 py-12 bg-black" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold mb-8">Performance Tab</h2>
+      <div class="doc-card rounded-lg p-8">
+        <p class="text-white/70 leading-relaxed">
+          A live <strong>Performance Monitor</strong> showing your system state, including GPU usage — handy for confirming your FPS/performance tweaks are actually helping.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TERMINAL TAB -->
+  <section id="tab-terminal" class="w-full px-6 py-12 bg-black" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold mb-8">Terminal Tab</h2>
+      <div class="doc-card rounded-lg p-8">
+        <p class="text-white/70 leading-relaxed">
+          A terminal-style page inside the app. Use it for command-style interaction and diagnostics.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FFLAGS MANAGER -->
+  <section id="fflags-manager" class="w-full px-6 py-12 bg-black" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold mb-8">FFlags Manager</h2>
+      <div class="doc-card rounded-lg p-8">
+        <p class="text-white/70 leading-relaxed">
+          Build and manage your flag list from the app's <strong>12,071-offset database</strong>:
+        </p>
+        <ul class="list-disc list-inside text-white/70 leading-relaxed mt-3 space-y-2">
+          <li><strong>Search</strong> — type to filter available flags.</li>
+          <li><strong>[Supported Only]</strong> — hide read-only flags that can't be injected.</li>
+          <li><strong>Add FFlag</strong> — move flags from "Available FFlags" into "Selected FFlags", then apply.</li>
+          <li><strong>Edit Flag</strong> — tweak a flag's value before applying.</li>
+          <li><strong>Remove Selected</strong> — clean up your selection.</li>
+          <li><strong>Close Roblox</strong> — offers to close Roblox (asks "Close Roblox now?" first) when a full restart is needed.</li>
+        </ul>
+        <div class="tip-box rounded-lg p-4 mt-5">
+          <p class="text-white/70 text-sm">The offset database is re-dumped after every Roblox update — keep your client updated for full compatibility.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SAFETY & TROUBLESHOOTING -->
+  <section id="safety" class="w-full px-6 py-12 bg-black" data-aos="fade-up">
+    <div class="max-w-4xl mx-auto">
+      <h2 class="font-serif text-3xl font-semibold mb-8">Safety &amp; Troubleshooting</h2>
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <h3 class="font-semibold mb-3">Antivirus false positives</h3>
+        <p class="text-white/70 leading-relaxed">
+          Belatstrap writes flags into Roblox's memory — that's exactly what malware does too, so some antivirus engines flag it. It's a <strong>false positive</strong>. Add Belatstrap to your antivirus exclusions, and only download from the official source. You can verify the build hash via the note page.
+        </p>
+      </div>
+      <div class="doc-card rounded-lg p-8 mb-6">
+        <h3 class="font-semibold mb-3">Common issues</h3>
+        <ul class="list-disc list-inside text-white/70 leading-relaxed space-y-2">
+          <li><strong>"Cannot read System GUID"</strong> → relaunch as Administrator.</li>
+          <li><strong>Flags not applying</strong> → Roblox must be running and you must inject first; restart Roblox after big config changes.</li>
+          <li><strong>"No supported flags found"</strong> → your config's flags don't match the current Roblox build; update Roblox via the installer and re-save your config.</li>
+          <li><strong>Session expired</strong> → the 5-hour Discord session ran out; sign in again (one click).</li>
+          <li><strong>Download failed</strong> → press Retry Download in the installer.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER CTA -->
+  <section class="w-full px-6 py-16 bg-black flex justify-center" data-aos="fade-up">
+    <div class="text-center">
+      <a href="/#download" class="glow-cta inline-flex items-center justify-center px-10 py-5 bg-brandRed text-black text-xs tracking-[0.28em] uppercase hover:bg-red-700 transition">Get Belatstrap</a>
+    </div>
+  </section>
+
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.AOS) {
+        AOS.init({ duration: 900, easing: 'ease-out-cubic', once: true });
+      }
+
+      const nav = document.getElementById('site-nav');
+      const onScroll = () => nav.classList.toggle('nav-scrolled', window.scrollY > 10);
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+
+      const cursor = document.getElementById('custom-cursor');
+      if (cursor) {
+        document.body.classList.add('cursor-ready');
+        const move = (e) => {
+          cursor.style.setProperty('--cursor-x', e.clientX);
+          cursor.style.setProperty('--cursor-y', e.clientY);
+        };
+        window.addEventListener('mousemove', move, { passive: true });
+        window.addEventListener('pointermove', move, { passive: true });
+        const isInteractive = (el) => !!el && !!el.closest('a, button, summary, [role="button"], input, textarea, select, label');
+        window.addEventListener('mouseover', (e) => { if (isInteractive(e.target)) cursor.classList.add('is-pointer'); }, { passive: true });
+        window.addEventListener('mouseout', (e) => { if (isInteractive(e.target)) cursor.classList.remove('is-pointer'); }, { passive: true });
+      }
+    });
+  </script>
+</body>
+</html>
