@@ -1189,14 +1189,6 @@
       if (!link || !modal) return;
 
       const DL_URL = link.href;
-      const API_URL = 'https://api.github.com/repos/888Noahhh/Belatstrap/releases/latest';
-      const FALLBACK_SIZE = 4604416;
-      const getCachedSize = () => {
-        try { return Number(sessionStorage.getItem('belatstrap-size')) || 0; } catch (_) { return 0; }
-      };
-      const cacheSize = (n) => {
-        try { sessionStorage.setItem('belatstrap-size', String(n)); } catch (_) {}
-      };
 
       const closeEls = modal.querySelectorAll('[data-download-close]');
       const cancelBtn = document.getElementById('download-cancel');
@@ -1209,11 +1201,7 @@
       let rafId = null;
       let isClosing = false;
       let lastFocus = null;
-      let abortCtrl = null;
-      let startTime = 0;
-      let duration = 0;
       let started = false;
-      let watchdogId = null;
 
       const ease = (t) => 1 - Math.pow(1 - t, 3);
 
@@ -1221,7 +1209,6 @@
         if (modal.hidden || isClosing) return;
         isClosing = true;
         cancelAnimationFrame(rafId);
-        clearTimeout(watchdogId);
         modal.classList.remove('is-open');
         const panel = modal.querySelector('.download-panel');
         const finish = () => {
@@ -1260,118 +1247,22 @@
         if (speed !== undefined) speedEl.textContent = speed;
       };
 
-      const finish = () => {
+      const runProgress = () => {
         if (started) return;
         started = true;
-        cancelAnimationFrame(rafId);
-        clearTimeout(watchdogId);
-        setProgress(100, 'Download complete! Check your downloads folder.', 'Belatstrap.exe');
-        iconEl.classList.add('is-done');
-        modal.classList.add('is-done');
-        setTimeout(() => close(), 1800);
-      };
-
-      const runRealDownload = async () => {
-        try {
-          if (!('serviceWorker' in navigator)) return false;
-          const reg = await navigator.serviceWorker.ready;
-          if (!reg.active || reg.active.state !== 'activated') return false;
-          if (!navigator.serviceWorker.controller) {
-            await new Promise((resolve) => {
-              let settled = false;
-              const timer = setTimeout(() => { if (!settled) { settled = true; resolve(); } }, 3000);
-              navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (!settled) { settled = true; clearTimeout(timer); resolve(); }
-              }, { once: true });
-            });
-            if (!navigator.serviceWorker.controller) return false;
-          }
-
-          setProgress(2, 'Connecting to server...', '-- MB/s');
-          let total = getCachedSize();
-          if (!total) {
-            try {
-              const metaResp = await fetch(API_URL, { signal: abortCtrl.signal });
-              if (metaResp.ok) {
-                const meta = await metaResp.json();
-                const asset = (meta.assets || []).find((a) => a.name === 'Belatstrap.exe');
-                if (asset && asset.size) total = asset.size;
-              }
-            } catch (_) {}
-            if (!total) total = FALLBACK_SIZE;
-            cacheSize(total);
-          }
-
-          setProgress(5, 'Downloading Belatstrap.exe...', '-- MB/s');
-
-          const resp = await fetch(DL_URL, { signal: abortCtrl.signal });
-          if (!resp.ok || !resp.body) return false;
-
-          const reader = resp.body.getReader();
-          const chunks = [];
-          let received = 0;
-          const beganAt = performance.now();
-          const MIN_SECS = 2.8;
-          const displayPct = (realPct, secs) => {
-            const floorPct = ease(Math.min(secs / MIN_SECS, 1)) * 99;
-            return Math.min(realPct >= 1 ? 99 : realPct * 100, floorPct);
-          };
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              if (value) {
-                chunks.push(value);
-                received += value.byteLength;
-              }
-              const realPct = received / total;
-              const secs = (performance.now() - beganAt) / 1000;
-              const speed = secs > 0 ? received / secs / 1048576 : 0;
-              setProgress(displayPct(realPct, secs), 'Downloading Belatstrap.exe...', speed.toFixed(1) + ' MB/s');
-            }
-          } catch (streamErr) {
-            if (received > 0) {
-              startAnchorDownload();
-              setProgress(99, 'Check your browser downloads folder.', 'Belatstrap.exe');
-              setTimeout(() => close(), 2500);
-              return true;
-            }
-            throw streamErr;
-          }
-
-          setProgress(99, 'Saving file...', 'Belatstrap.exe');
-          clearTimeout(watchdogId);
-
-          const blob = new Blob(chunks, { type: 'application/octet-stream' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'Belatstrap.exe';
-          a.style.display = 'none';
-          document.body.appendChild(a);
-          a.click();
-          setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1500);
-          setTimeout(() => finish(), 1500);
-          return true;
-        } catch (err) {
-          if (err && err.name === 'AbortError') {
-            close();
-            return true;
-          }
-          return false;
-        }
-      };
-
-      const runFakeDownload = () => {
-        startAnchorDownload();
-        duration = 2200;
-        startTime = performance.now();
+        const beganAt = performance.now();
+        const DURATION = 2400;
         const tick = (now) => {
-          const t = Math.min((now - startTime) / duration, 1);
-          const p = Math.round(94 * ease(t));
-          setProgress(1 + p, t < 1 ? 'Starting browser download...' : 'Check your browser downloads folder.', '-- MB/s');
-          if (t < 1) rafId = requestAnimationFrame(tick);
-          else setTimeout(() => close(), 1800);
+          const t = Math.min((now - beganAt) / DURATION, 1);
+          if (t < 1) {
+            setProgress(1 + Math.round(94 * ease(t)), 'Downloading Belatstrap.exe...', '-- MB/s');
+            rafId = requestAnimationFrame(tick);
+          } else {
+            setProgress(100, 'Download complete! Check your downloads folder.', 'Belatstrap.exe');
+            iconEl.classList.add('is-done');
+            modal.classList.add('is-done');
+            setTimeout(() => close(), 1600);
+          }
         };
         rafId = requestAnimationFrame(tick);
       };
@@ -1382,37 +1273,24 @@
         isClosing = false;
         started = false;
         lastFocus = document.activeElement;
-        abortCtrl = new AbortController();
-        clearTimeout(watchdogId);
-        watchdogId = setTimeout(() => {
-          if (!started && !modal.hidden) {
-            startAnchorDownload();
-            statusEl.textContent = 'Slow connection — check your browser downloads folder.';
-            setTimeout(() => close(), 2500);
-          }
-        }, 15000);
         percentEl.textContent = '0%';
         fillEl.style.width = '0%';
         fillEl.setAttribute('aria-valuenow', '0');
         speedEl.textContent = '-- MB/s';
-        statusEl.textContent = 'Connecting to server...';
+        statusEl.textContent = 'Starting download...';
         iconEl.classList.remove('is-done');
         modal.classList.remove('is-done');
         modal.hidden = false;
         document.body.style.overflow = 'hidden';
+        startAnchorDownload();
         requestAnimationFrame(() => {
           modal.classList.add('is-open');
-          runRealDownload().then((ok) => {
-            if (!ok && !started) runFakeDownload();
-          });
+          runProgress();
         });
       };
 
       link.addEventListener('click', open);
-      cancelBtn.addEventListener('click', () => {
-        if (abortCtrl) abortCtrl.abort();
-        close();
-      });
+      cancelBtn.addEventListener('click', () => close());
       closeEls.forEach((el) => el.addEventListener('click', () => close()));
 
       document.addEventListener('keydown', (e) => {
@@ -1421,7 +1299,9 @@
       });
 
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(() => {});
+        navigator.serviceWorker.getRegistrations()
+          .then((regs) => regs.forEach((r) => r.unregister()))
+          .catch(() => {});
       }
     })();
   </script>
