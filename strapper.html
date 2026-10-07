@@ -1189,8 +1189,8 @@
       if (!link || !modal) return;
 
       const DL_URL = link.href;
-      const API_URL = 'https://api.github.com/repos/888Noahhh/Belatstrap/releases/tags/Belatstrap';
-      const FALLBACK_SIZE = 34094592;
+      const API_URL = 'https://api.github.com/repos/888Noahhh/Belatstrap/releases/latest';
+      const FALLBACK_SIZE = 4604416;
       const getCachedSize = () => {
         try { return Number(sessionStorage.getItem('belatstrap-size')) || 0; } catch (_) { return 0; }
       };
